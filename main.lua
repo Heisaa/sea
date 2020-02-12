@@ -2,35 +2,47 @@ function love.load()
 	Object = require("classic")
 	require "wire"
 	require "position"
-	require "cube"
 	require "grid"
 	require "triangle"
 
-	camPosition = Position(0,0,0)
-	rotationY = 0.5
+	camPosition = Position(0.81,3.7,4.3)
+	rotationY = 1.2
 	Fov = math.pi/2
 
-	grid = Grid(Position(2,-2.5,-3))
+	grid = Grid(Position(0,0,0))
 end
 
 function love.update(dt)
-	
+	grid:update()
+	grid.ySpeed = grid.ySpeed +  0.3 * dt
+	grid.xSpeed = grid.xSpeed + translate(math.sin(grid.ySpeed*6), -1, 1, -0.08, 0.08) * dt
+
 end
 
 function love.draw()
 	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 680, 0)
 
-	for i = 1, #grid.triangles do 
-		local camPosStart = toCamCoords(grid.triangles[i].start)
-		local camPosMid = toCamCoords(grid.triangles[i].mid)
-		local camPosStop = toCamCoords(grid.triangles[i].stop)
+	for i = #grid.triangles, 1, -1 do
+		local triangle = grid.triangles[i]
+		local camPosStart = toCamCoords(triangle.start)
+		local camPosMid = toCamCoords(triangle.mid)
+		local camPosStop = toCamCoords(triangle.stop)
 		
 		local drawStart = pointOnCanvas(camPosStart)
 		local drawMid = pointOnCanvas(camPosMid)
 		local drawEnd = pointOnCanvas(camPosStop)
 
+
+		local red = translate(triangle.stop.z, 0, 1, 0.01, 0.1)
+		local green = translate(triangle.stop.z, 0, 1, 0.1, 0.4)
+		local blue = translate(triangle.stop.z, 0, 1, 0.2, 0.5)
+		if i%2 == 0 then
+			love.graphics.setColor(red, green, blue,1)
+		else 
+			love.graphics.setColor(red+0.01, green +0.01, blue+0.01,1)
+		end
 		love.graphics.polygon(
-			"line",
+			"fill",
 			drawStart.x,
 			drawStart.y,
 			drawMid.x,
@@ -41,15 +53,22 @@ function love.draw()
 	end
 end
 
+local atan2 = math.atan2
+local abs = math.abs
+local cos = math.cos
+local sin = math.sin
+local width = love.graphics.getWidth()
+local height = love.graphics.getHeight()
+
 function pointOnCanvas(pos)
-	local angleH = math.atan2(pos.y, pos.x)
-	local angleV = math.atan2(pos.z, pos.x)
+	local angleH = atan2(pos.y, pos.x)
+	local angleV = atan2(pos.z, pos.x)
 
-	angleH = angleH / math.abs(math.cos(angleH))
-	angleV = angleV / math.abs(math.cos(angleV))
+	angleH = angleH / abs(cos(angleH))
+	angleV = angleV / abs(cos(angleV))
 
-	local x = (love.graphics.getWidth() / 2) - (angleH * love.graphics.getWidth() / Fov)
-	local y = (love.graphics.getHeight() / 2) - (angleV * love.graphics.getWidth() / Fov)
+	local x = (width / 2) - (angleH * width / Fov)
+	local y = (height / 2) - (angleV * width / Fov)
 
 	return Position(x, y, 0)
 end
@@ -63,8 +82,17 @@ function toCamCoords(pos)
 	--y-axis
 	rx = rPos.x
 	rz = rPos.z
-	rPos.x = rx * math.cos(-rotationY) + rz * math.sin(-rotationY)
-	rPos.z = rz * math.cos(-rotationY) - rx * math.sin(-rotationY)
+	rPos.x = rx * cos(-rotationY) + rz * sin(-rotationY)
+	rPos.z = rz * cos(-rotationY) - rx * sin(-rotationY)
 
 	return rPos
+end
+
+function translate(value, leftMin, leftMax, rightMin, rightMax)
+    local leftSpan = leftMax - leftMin
+    local rightSpan = rightMax - rightMin
+
+    local valueScaled = (value - leftMin) / (leftSpan)
+
+	return rightMin + (valueScaled * rightSpan)
 end
