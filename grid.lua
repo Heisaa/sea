@@ -11,6 +11,8 @@ function Grid:new(pos)
     self.yOffset = 0
     self.xSpeed = 0
     self.ySpeed = 0
+    self.noiseHeight = 0.6
+    self.noiseIntensity = 0.18
 end
 
 function Grid:update()
@@ -20,10 +22,10 @@ function Grid:update()
         self.zValue[y] = {}
         self.xOffset = self.xSpeed
         for x = 1, self.xTriangles + 1 do
-            self.zValue[y][x] =  translate(love.math.noise(self.xOffset,self.yOffset), 0, 1, 0, 0.6)
-            self.xOffset = self.xOffset + 0.18
+            self.zValue[y][x] =  translate(love.math.noise(self.xOffset,self.yOffset), 0, 1, 0, self.noiseHeight)
+            self.xOffset = self.xOffset + self.noiseIntensity
         end
-        self.yOffset = self.yOffset + 0.18
+        self.yOffset = self.yOffset + self.noiseIntensity
     end
 
     self.triangles = {}

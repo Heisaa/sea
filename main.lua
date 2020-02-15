@@ -20,6 +20,7 @@ function love.update(dt)
 end
 
 function love.draw()
+	love.graphics.setColor(1,1,1,1)
 	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 680, 0)
 
 	for i = #grid.triangles, 1, -1 do
@@ -32,15 +33,13 @@ function love.draw()
 		local drawMid = pointOnCanvas(camPosMid)
 		local drawEnd = pointOnCanvas(camPosStop)
 
-
-		local red = translate(triangle.stop.z, 0, 1, 0.01, 0.1)
-		local green = translate(triangle.stop.z, 0, 1, 0.1, 0.4)
-		local blue = translate(triangle.stop.z, 0, 1, 0.2, 0.5)
-		if i%2 == 0 then
-			love.graphics.setColor(red, green, blue,1)
-		else 
-			love.graphics.setColor(red+0.01, green +0.01, blue+0.01,1)
-		end
+		local zAverage = (triangle.start.z + triangle.mid.z + triangle.stop.z) / 3
+		local red = translate(zAverage, 0, 1, 0.01, 0.1)
+		local green = translate(zAverage, 0, 1, 0.1, 0.4)
+		local blue = translate(zAverage, 0, 1, 0.2, 0.5)
+		
+		love.graphics.setColor(red, green, blue,1)
+		
 		love.graphics.polygon(
 			"fill",
 			drawStart.x,
